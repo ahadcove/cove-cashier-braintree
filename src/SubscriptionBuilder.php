@@ -52,6 +52,13 @@ class SubscriptionBuilder
     protected $coupon;
 
     /**
+     * The number of billing cycles for the subscription.
+     *
+     * @var int|null
+     */
+    protected $billingCycles;
+
+    /**
      * Create a new subscription builder instance.
      *
      * @param  mixed  $owner
@@ -100,6 +107,19 @@ class SubscriptionBuilder
     public function withCoupon($coupon)
     {
         $this->coupon = $coupon;
+
+        return $this;
+    }
+
+    /**
+     * Set the number of billing cycles for the subscription.
+     *
+     * @param  int  $cycles
+     * @return $this
+     */
+    public function billingCycles($cycles)
+    {
+        $this->billingCycles = $cycles;
 
         return $this;
     }
@@ -175,14 +195,23 @@ class SubscriptionBuilder
             $trialDuration = $this->trialDays ?: 0;
         }
 
-        return array_merge([
+        $payload = [
             'planId' => $this->plan,
             'price' => number_format($plan->price * (1 + ($this->owner->taxPercentage() / 100)), 2, '.', ''),
             'paymentMethodToken' => $this->owner->paymentMethod()->token,
             'trialPeriod' => $this->trialDays && ! $this->skipTrial ? true : false,
             'trialDurationUnit' => 'day',
             'trialDuration' => $trialDuration,
-        ], $options);
+        ];
+
+        if ($this->billingCycles) {
+            $payload['numberOfBillingCycles'] = $this->billingCycles;
+            $payload['neverExpires'] = false;
+        } else {
+            $payload['neverExpires'] = true;
+        }
+
+        return array_merge($payload, $options);
     }
 
     /**
