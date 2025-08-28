@@ -46,9 +46,82 @@ You can set these variables in the `phpunit.xml.dist` file.
 
 Documentation for Cashier Braintree can be found on the [Laravel website](https://laravel.com/docs/5.8/braintree).
 
-## Submitting a build
+## Publishing to Packagist
 
-    * Update composer.json to include new php version
-    * Checkout branch for version that you want
-    * Create a git tag with the version
-    * That's it. It will auto be updated on packagist and you can now install it in your app
+### Prerequisites
+
+1. **Packagist Account**: Create an account at [packagist.org](https://packagist.org) if you don't have one
+2. **Repository Access**: Ensure you have push access to this GitHub repository
+3. **Composer**: Make sure you have Composer installed locally
+
+### Initial Setup (First Time Only)
+
+1. **Submit Package to Packagist**:
+
+    - Log in to [packagist.org](https://packagist.org)
+    - Click "Submit" in the navigation
+    - Enter the GitHub repository URL: `https://github.com/ahadcove/cashier-braintree`
+    - Click "Check" and then "Submit"
+
+2. **Setup Auto-updating** (Recommended):
+    - In Packagist, go to your package page
+    - Click "Settings" → "Webhooks"
+    - Copy the webhook URL
+    - In GitHub, go to Settings → Webhooks → Add webhook
+    - Paste the Packagist webhook URL
+    - Set Content type to `application/json`
+    - Select "Just the push event"
+    - Save the webhook
+
+### Publishing a New Version
+
+1. **Update Version Dependencies** (if needed):
+
+    ```bash
+    # Update composer.json with new PHP or Laravel versions if required
+    composer update
+    ```
+
+2. **Run Tests**:
+
+    ```bash
+    composer test
+    # or
+    vendor/bin/phpunit
+    ```
+
+3. **Commit Changes**:
+
+    ```bash
+    git add .
+    git commit -m "feat: your feature description"
+    git push origin 12.2
+    ```
+
+4. **Create and Push Tag**:
+
+    ```bash
+    # Semantic versioning: MAJOR.MINOR.PATCH
+    git tag -a v12.2.0 -m "Release version 12.2.0"
+    git push --tags
+    ```
+
+5. **Verify on Packagist**:
+    - If webhooks are configured: Package will auto-update within minutes
+    - Manual update: Go to your package on Packagist and click "Update"
+
+### Version Naming Convention
+
+Follow [Semantic Versioning](https://semver.org/):
+
+-   **MAJOR** version: Incompatible API changes
+-   **MINOR** version: Add functionality (backwards-compatible)
+-   **PATCH** version: Bug fixes (backwards-compatible)
+
+Example: `v12.2.1`
+
+### Troubleshooting
+
+-   **Package not updating**: Check webhook delivery in GitHub Settings → Webhooks
+-   **Composer can't find package**: Run `composer clear-cache`
+-   **Version constraints issues**: Ensure your `composer.json` version constraints are valid
