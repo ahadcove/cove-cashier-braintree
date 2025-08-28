@@ -148,7 +148,8 @@ class SubscriptionBuilder
     public function create($token = null, array $customerOptions = [], array $subscriptionOptions = []): Subscription
     {
         $payload = $this->getSubscriptionPayload(
-            $this->getBraintreeCustomer($token, $customerOptions), $subscriptionOptions
+            $this->getBraintreeCustomer($token, $customerOptions),
+            $subscriptionOptions
         );
 
         if ($this->coupon) {
@@ -158,7 +159,7 @@ class SubscriptionBuilder
         $response = BraintreeSubscription::create($payload);
 
         if (! $response->success) {
-            throw new Exception('Braintree failed to create subscription: '.$response->message);
+            throw new Exception('Braintree failed to create subscription: ' . $response->message);
         }
 
         if ($this->skipTrial) {
@@ -167,14 +168,58 @@ class SubscriptionBuilder
             $trialEndsAt = $this->trialDays ? Carbon::now()->addDays($this->trialDays) : null;
         }
 
+        // Calculate ends_at based on billing cycles
+        $endsAt = null;
+        if ($this->billingCycles) {
+            $endsAt = $this->calculateSubscriptionEndDate($response->subscription, $trialEndsAt);
+        }
+
         return $this->owner->subscriptions()->create([
             'name' => $this->name,
             'braintree_id'   => $response->subscription->id,
             'braintree_plan' => $this->plan,
             'quantity' => 1,
             'trial_ends_at' => $trialEndsAt,
-            'ends_at' => null,
+            'ends_at' => $endsAt,
         ]);
+    }
+
+    /**
+     * Calculate the subscription end date based on billing cycles.
+     *
+     * @param  \Braintree\Subscription  $braintreeSubscription
+     * @param  \Carbon\Carbon|null  $trialEndsAt
+     * @return \Carbon\Carbon
+     */
+    protected function calculateSubscriptionEndDate($braintreeSubscription, $trialEndsAt = null)
+    {
+        // Get the plan to determine billing frequency
+        $plan = BraintreeService::findPlan($this->plan);
+
+        // Start from the first billing date
+        // If there's a trial, start from when the trial ends, otherwise start from now
+        $startDate = $trialEndsAt ? Carbon::parse($trialEndsAt) : Carbon::now();
+
+        // Calculate end date based on the plan's billing frequency
+        // You may need to adjust these based on your specific plan configuration
+        if (isset($plan->billingFrequency)) {
+            switch ($plan->billingFrequency) {
+                case 1: // Monthly
+                    return $startDate->copy()->addMonths($this->billingCycles);
+                case 3: // Quarterly
+                    return $startDate->copy()->addMonths($this->billingCycles * 3);
+                case 6: // Semi-annually
+                    return $startDate->copy()->addMonths($this->billingCycles * 6);
+                case 12: // Annually
+                    return $startDate->copy()->addYears($this->billingCycles);
+                default:
+                    // Default to monthly if frequency is not recognized
+                    return $startDate->copy()->addMonths($this->billingCycles);
+            }
+        }
+
+        // If billingFrequency is not set, default to monthly
+        return $startDate->copy()->addMonths($this->billingCycles);
     }
 
     /**
