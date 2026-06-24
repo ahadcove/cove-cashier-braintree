@@ -1,5 +1,6 @@
 {
     "name": "ahadcove/cashier-braintree",
+    "version": "12.2.2",
     "description": "Laravel Cashier provides an expressive, fluent interface to Braintree's subscription billing services.",
     "keywords": [
         "laravel",
@@ -18,12 +19,12 @@
         "php": "^8.0|^7.0|^9.0|^10.0|^11.0|^12.0",
         "braintree/braintree_php": "^6.25.0",
         "dompdf/dompdf": "v3.1.0",
-        "illuminate/contracts": "v12.12.0",
-        "illuminate/database": "v12.12.0",
-        "illuminate/http": "v12.12.0",
-        "illuminate/routing": "v12.12.0",
-        "illuminate/support": "v12.12.0",
-        "illuminate/view": "v12.12.0",
+        "illuminate/contracts": "^12.0",
+        "illuminate/database": "^12.0",
+        "illuminate/http": "^12.0",
+        "illuminate/routing": "^12.0",
+        "illuminate/support": "^12.0",
+        "illuminate/view": "^12.0",
         "nesbot/carbon": "^3.9.1",
         "symfony/http-kernel": "~2.7|~3.0|~4.0|~5.0|~6.0|~7.0|~8.0"
     },
